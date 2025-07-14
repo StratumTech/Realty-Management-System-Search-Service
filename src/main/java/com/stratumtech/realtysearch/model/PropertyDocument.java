@@ -23,6 +23,12 @@ public class PropertyDocument {
     private UUID id;
 
     @Field(type = FieldType.Keyword)
+    private UUID agentUuid;
+
+    @Field(type = FieldType.Text)
+    private String title;
+
+    @Field(type = FieldType.Keyword)
     private String type;
 
     @Field(type = FieldType.Keyword)
@@ -34,8 +40,17 @@ public class PropertyDocument {
     @Field(type = FieldType.Integer)
     private Integer rooms;
 
+    @Field(type = FieldType.Double)
+    private Double area;
+
     @Field(type = FieldType.Keyword)
     private List<String> features;
+
+    @Field(type = FieldType.Text)
+    private String address;
+
+    @Field(type = FieldType.Text)
+    private String layout;
 
     @Field(type = FieldType.Date)
     private Instant createdAt;

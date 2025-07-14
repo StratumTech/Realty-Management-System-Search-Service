@@ -1,5 +1,6 @@
 package com.stratumtech.realtysearch.consumer;
 
+import java.util.Map;
 import java.util.UUID;
 
 import ch.qos.logback.core.util.StringUtil;
@@ -15,7 +16,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import com.stratumtech.realtysearch.dto.mapper.PropertyMapper;
 import com.stratumtech.realtysearch.service.PropertySearchService;
 import com.stratumtech.realtysearch.dto.request.PropertyIndexRequest;
-import com.stratumtech.realtysearch.dto.request.PropertyUpdateRequest;
 
 @Slf4j
 @Component
@@ -34,7 +34,7 @@ public class PropertyIndexConsumer {
     }
 
     @KafkaListener(
-            id = "consumer-group-1",
+            groupId = "consumer-group-1",
             topics = "${kafka.topic.indexing-property-topic}",
             containerFactory = "kafkaListenerContainerFactory")
     public void handle(@Payload KafkaRequest message) {
@@ -42,7 +42,7 @@ public class PropertyIndexConsumer {
     }
 
     @KafkaListener(
-            id = "consumer-group-2",
+            groupId = "consumer-group-2",
             topics = "${kafka.topic.indexing-property-topic}",
             containerFactory = "kafkaListenerContainerFactory")
     public void handle2(@Payload KafkaRequest message) {
@@ -63,23 +63,23 @@ public class PropertyIndexConsumer {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void readPropertyIndex(Object obj) {
-        if(obj instanceof PropertyIndexRequest request) {
-            propertySearchService.index(request);
-            log.info("Indexed property {}", request.getPropertyId());
-        }else throw new RuntimeException();
+        PropertyIndexRequest request = propertyMapper.toIndexRequest((Map<String, Object>) obj);
+        propertySearchService.index(request);
+        log.info("Indexed property {}", request.getPropertyId());
     }
 
+    @SuppressWarnings("unchecked")
     public void readPropertyUpdate(UUID uuid, Object obj) {
-        if(obj instanceof PropertyUpdateRequest request) {
-            propertySearchService.update(uuid, request.getChanges());
-            log.info("Updated property {}", uuid);
-        }else throw new RuntimeException();
+        final var data = (Map<String, Object>) obj;
+        final var changes = (Map<String, Object>) data.getOrDefault("changes", Map.of());
+        propertySearchService.update(uuid, changes);
+        log.info("Updated property {}", uuid);
     }
 
     public void readPropertyDelete(UUID propertyUuid) {
         propertySearchService.invalidate(propertyUuid);
         log.debug("Invalidate property {}", propertyUuid);
     }
-
 }
