@@ -36,7 +36,8 @@ public class PropertyIndexConsumer {
     @KafkaListener(
             groupId = "consumer-group-1",
             topics = "${kafka.topic.indexing-property-topic}",
-            containerFactory = "kafkaListenerContainerFactory")
+            containerFactory = "kafkaListenerContainerFactory"
+    )
     public void handle(@Payload KafkaRequest message) {
         readDispatch(message);
     }
@@ -44,12 +45,13 @@ public class PropertyIndexConsumer {
     @KafkaListener(
             groupId = "consumer-group-2",
             topics = "${kafka.topic.indexing-property-topic}",
-            containerFactory = "kafkaListenerContainerFactory")
+            containerFactory = "kafkaListenerContainerFactory"
+    )
     public void handle2(@Payload KafkaRequest message) {
         readDispatch(message);
     }
 
-    public void readDispatch(KafkaRequest message) {
+    private void readDispatch(KafkaRequest message) {
         log.debug(
                 "Received message with operation '{}'. Routing to handler: readPropery{}",
                 message.operation(),
@@ -64,21 +66,21 @@ public class PropertyIndexConsumer {
     }
 
     @SuppressWarnings("unchecked")
-    public void readPropertyIndex(Object obj) {
+    private void readPropertyIndex(Object obj) {
         PropertyIndexRequest request = propertyMapper.toIndexRequest((Map<String, Object>) obj);
         propertySearchService.index(request);
         log.info("Indexed property {}", request.getPropertyId());
     }
 
     @SuppressWarnings("unchecked")
-    public void readPropertyUpdate(UUID uuid, Object obj) {
+    private void readPropertyUpdate(UUID uuid, Object obj) {
         final var data = (Map<String, Object>) obj;
         final var changes = (Map<String, Object>) data.getOrDefault("changes", Map.of());
         propertySearchService.update(uuid, changes);
         log.info("Updated property {}", uuid);
     }
 
-    public void readPropertyDelete(UUID propertyUuid) {
+    private void readPropertyDelete(UUID propertyUuid) {
         propertySearchService.invalidate(propertyUuid);
         log.debug("Invalidate property {}", propertyUuid);
     }
